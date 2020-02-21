@@ -1,4 +1,8 @@
 use std::io::Write;
+#[macro_use]
+extern crate serde_derive;
+
+use serde::{Serialize, Serializer};
 
 use std::sync::atomic::{AtomicUsize, Ordering};
 
@@ -29,9 +33,26 @@ impl Metric for () {
     }
 }
 
+#[derive(Default)]
 pub struct DiffMetric {
     current_value: AtomicUsize,
     previous_value: AtomicUsize,
+}
+
+impl Serialize for DiffMetric {
+    /// Reset counters of each metrics. Here we suppose that Serialize's goal is to help with the
+    /// flushing of metrics.
+    /// !!! Any print of the metrics will also reset them. Use with caution !!!
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        // There's no serializer.serialize_usize() for some reason :(
+        let snapshot = self.current_value.load(Ordering::Relaxed);
+        let res = serializer.serialize_u64(snapshot as u64 - self.previous_value.load(Ordering::Relaxed) as u64);
+
+        if res.is_ok() {
+            self.previous_value.store(snapshot, Ordering::Relaxed);
+        }
+        res
+    }
 }
 
 impl Metric for DiffMetric {

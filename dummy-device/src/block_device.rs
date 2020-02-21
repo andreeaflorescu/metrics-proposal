@@ -1,27 +1,15 @@
-use metrics::{Metric, MetricWriter};
+use metrics::MetricWriter;
 use std::io::Write;
-
-// This implementation allows users to create a `BlockDevice` without metrics.
-impl BlockMetrics for () {
-    fn feature_error(&self) -> Box<&dyn Metric> {
-        Box::new(self)
-    }
-
-    fn activate_error(&self) -> Box<&dyn Metric> {
-        Box::new(self)
-    }
-
-    fn successful_activation(&self) -> Box<&dyn Metric> {
-        Box::new(self)
-    }
-}
 
 /// Defines metrics specific to the block device implementation.
 pub trait BlockMetrics : MetricWriter {
-    fn feature_error(&self) -> Box<&dyn Metric>;
-    fn activate_error(&self) -> Box<&dyn Metric>;
-    fn successful_activation(&self) -> Box<&dyn Metric>;
+    fn feature_error_inc(&self) {}
+    fn activate_error_inc(&self) {}
+    fn successful_activation_inc(&self) {}
 }
+
+// This implementation allows users to create a `BlockDevice` without metrics.
+impl BlockMetrics for () { }
 
 pub struct BlockDevice<T: BlockMetrics> {
     features: u64,
@@ -56,7 +44,7 @@ impl <T: BlockMetrics + Default> BlockDevice<T> {
 
     pub fn set_features(&mut self, val: u64) {
         if val == 0 {
-            self.metrics.feature_error().inc();
+            self.metrics.feature_error_inc();
             return;
         }
         self.features = val;
@@ -64,9 +52,9 @@ impl <T: BlockMetrics + Default> BlockDevice<T> {
 
     pub fn activate(&self) {
         if self.activate_success {
-            self.metrics.successful_activation().inc();
+            self.metrics.successful_activation_inc();
         } else {
-            self.metrics.activate_error().inc();
+            self.metrics.activate_error_inc();
         }
     }
 
@@ -99,16 +87,16 @@ mod tests {
 
     impl BlockMetrics for BlockMetricsImpl {
 
-        fn feature_error(&self) -> Box<&dyn Metric> {
-            Box::new(&self.features_error)
+        fn feature_error_inc(&self) {
+           self.features_error.inc();
         }
 
-        fn activate_error(&self) -> Box<&dyn Metric> {
-            Box::new(&self.activate_error)
+        fn activate_error_inc(&self) {
+            self.activate_error.inc();
         }
 
-        fn successful_activation(&self) -> Box<&dyn Metric> {
-            Box::new(&self.successful_activation)
+        fn successful_activation_inc(&self) {
+            self.successful_activation.inc();
         }
     }
 

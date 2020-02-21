@@ -1,14 +1,13 @@
 use std::io::Write;
-use std::sync::atomic::AtomicUsize;
 
-use metrics::{Metric, MetricWriter};
+use metrics::{Metric, MetricWriter, DiffMetric};
 use dummy_device::block_device::BlockMetrics;
 
 #[derive(Default, Serialize)]
 pub struct BlockMetricsImpl {
-    successful_activation: AtomicUsize,
-    activate_error: AtomicUsize,
-    features_error: AtomicUsize,
+    successful_activation: DiffMetric,
+    activate_error: DiffMetric,
+    features_error: DiffMetric,
 }
 
 impl MetricWriter for BlockMetricsImpl {
@@ -20,13 +19,16 @@ impl MetricWriter for BlockMetricsImpl {
 }
 
 impl BlockMetrics for BlockMetricsImpl {
-    fn feature_error(&self) -> Box<&dyn Metric> {
-        Box::new(&self.features_error)
+
+    fn feature_error_inc(&self) {
+        self.features_error.inc();
     }
-    fn activate_error(&self) -> Box<&dyn Metric> {
-        Box::new(&self.activate_error)
+
+    fn activate_error_inc(&self) {
+        self.activate_error.inc();
     }
-    fn successful_activation(&self) -> Box<&dyn Metric> {
-        Box::new(&self.successful_activation)
+
+    fn successful_activation_inc(&self) {
+        self.successful_activation.inc();
     }
 }
