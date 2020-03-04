@@ -1,4 +1,4 @@
-use metrics::MetricWriter;
+use metrics::{Metric, MetricWriter};
 use std::io::Write;
 
 /// Defines metrics specific to the block device implementation.
@@ -12,10 +12,10 @@ pub trait BlockMetrics : MetricWriter {
 impl BlockMetrics for () { }
 
 pub struct BlockDevice<T: BlockMetrics> {
-    features: u64,
     // Generic type that represents the block metrics. When users don't want
-    // metrics to be enabled, BlockDevice can be instantiated with `NoOpMetric`.
+    // metrics to be enabled, BlockDevice can be instantiated with `()`.
     metrics: T,
+    features: u64,
     activate_success: bool,
 }
 

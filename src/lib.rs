@@ -1,5 +1,3 @@
-use std::io::{BufWriter, Write};
-
 #[cfg(test)]
 mod tests {
     #[test]

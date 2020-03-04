@@ -15,6 +15,8 @@ pub trait Metric {
     }
     /// Returns current value of the counter.
     fn count(&self) -> usize;
+
+    fn reset(&self) {}
 }
 
 pub trait MetricWriter {
