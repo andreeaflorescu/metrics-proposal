@@ -1,6 +1,4 @@
 use std::io::Write;
-#[macro_use]
-extern crate serde_derive;
 
 use serde::{Serialize, Serializer};
 
@@ -15,7 +13,7 @@ pub trait Metric {
     }
     /// Returns current value of the counter.
     fn count(&self) -> usize;
-
+    /// Resets the inner counter.
     fn reset(&self) {}
 }
 
@@ -76,13 +74,5 @@ impl Metric for AtomicUsize {
     /// Returns current value of the counter.
     fn count(&self) -> usize {
         self.load(Ordering::Relaxed)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn test_works() {
-        println!("blah");
     }
 }
